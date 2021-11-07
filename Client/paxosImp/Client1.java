@@ -7,14 +7,17 @@ import java.net.Socket;
 public class Client1 {
 	public static void main( String[] args ) throws IOException
     {
-		try (Socket socket = new Socket("localhost", 8080)) {
+		try {
+			Socket socket = new Socket("localhost", 8080);
 			System.out.println("connected to server");
 			
-			
-			ObjectOutputStream outputStream =
-					new  ObjectOutputStream(socket.getOutputStream());
+			ObjectOutputStream outputStream = new  ObjectOutputStream(socket.getOutputStream());
 	
 			outputStream.writeObject("hello1");
-		}
+			socket.close();
+		
+    }catch(Exception e) {
+    	
     }
+}
 }

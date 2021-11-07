@@ -1,22 +1,28 @@
 package paxosImp;
 
 import java.io.IOException;
-import java.net.ServerSocket;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.util.HashMap;
 
 import paxosImp.dto.PrepareResponse;
 import paxosImp.dto.ProposeResponse;
 
-public class PaxosServerNodeImpl implements PaxosServerNode{
+public class PaxosServerNodeImpl implements PaxosServerNode {
+	
 	
 	int proposalID = 0;
 	int maxId = 0;
 	int promise = 0;
+	
 	boolean proposal_accepted = false;
 	
 	@Override
-	public void prepare() {
-		proposalID = proposalID++;
-		proposal_accepted = sendPrepareToAcceptors(proposalID);
+	public void prepare(int propsalPort) throws UnknownHostException, IOException {
+
+		proposalID = proposalID + 1;
+		sendPrepareToAcceptors(propsalPort);
 	}
 	
 	@Override
@@ -29,11 +35,14 @@ public class PaxosServerNodeImpl implements PaxosServerNode{
 	@Override
 	public PrepareResponse respondPrepare(int proposalID) {
 		PrepareResponse response;
+		System.out.println("proposalID is "+proposalID);
 		if (maxId < proposalID) {
 			// i am ready
+			System.out.println("response is ready ");
 			response = new PrepareResponse(true);
 		} else {
 			// i am not
+			System.out.println("response is not ready ");
 			response = new PrepareResponse(false);
 		}
 		return response;
@@ -60,15 +69,32 @@ public class PaxosServerNodeImpl implements PaxosServerNode{
 		
 	}
 
-	private boolean sendPrepareToAcceptors(int proposalID2) {
-		/*
-		 * 
-		 * respponse from all the acceptors 
-		 * TODO remove this afterwards
-		 * */
-		PrepareResponse response = new PrepareResponse(false);
+	private void sendPrepareToAcceptors(int propsalPort) throws UnknownHostException, IOException {
+		HashMap<String, Integer> message = new HashMap<>();
+		message.put("PropsalId", proposalID);
+		message.put("Sender", propsalPort);
 		
-		return response.isReady();
+		System.out.println("PropsalId is "+ proposalID);
+		broadcastMessageToAllNodes(message);
+		
+	}
+	
+	private void broadcastMessageToAllNodes(HashMap<String, Integer> message) throws IOException {
+		Socket socket1 = new Socket("localhost", 8081);
+		Socket socket2 = new Socket("localhost", 8083);
+		Socket socket3 = new Socket("localhost", 8085);
+		
+		ObjectOutputStream outputStream1 = new ObjectOutputStream(socket1.getOutputStream());
+		ObjectOutputStream outputStream2 = new ObjectOutputStream(socket2.getOutputStream());
+		ObjectOutputStream outputStream3 = new ObjectOutputStream(socket3.getOutputStream());
+
+		outputStream1.writeObject(message);
+		outputStream2.writeObject(message);
+		outputStream3.writeObject(message);
+		
+		socket1.close();
+		socket2.close();
+		socket3.close();
 		
 	}
 }

@@ -1,5 +1,8 @@
 package paxosImp;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
+
 import paxosImp.dto.PrepareResponse;
 import paxosImp.dto.ProposeResponse;
 
@@ -9,8 +12,10 @@ public interface PaxosServerNode {
 	
 	/**
 	 * Proposer send PREPARE to acceptor
+	 * @throws IOException 
+	 * @throws UnknownHostException 
 	 * */
-	abstract void prepare();
+	abstract void prepare(int propsalPort) throws UnknownHostException, IOException;
 	
 	/**
 	 * Acceptor accepts the PREPARE call of prosper 
@@ -33,5 +38,7 @@ public interface PaxosServerNode {
 	 * @return if value is accepted or not, tells proposer and if accepted also to learner
 	 * */
 	abstract ProposeResponse respondPropose(int proposalID, String value);
+
+	
 	
 }
