@@ -7,48 +7,11 @@ import java.net.Socket;
 import java.util.HashMap;
 
 import paxosImp.dto.PrepareResponse;
-
-@SuppressWarnings("resource")
-class ClientSocket implements Runnable {
-    public String valueToAccept;
-    private int clientPort;
-    private int paxosPort;
-    private PaxosServerNodeImpl paxosServerNode;
+public class PaxosSocket implements Runnable {
     
-	public ClientSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientport, int paxosport) {
-		this.paxosServerNode = paxosServerNodeImpl;
-		this.clientPort = clientport;
-		this.paxosPort = paxosport;
-		
-	}
-
-	public void run()
-    {
-        try
-        {
-			ServerSocket serverSock = new ServerSocket(clientPort);
-        	while(true) {
-        		
-        		Socket sock = serverSock.accept();
-        		ObjectInputStream inputStreamFromClient = new ObjectInputStream(sock.getInputStream());
-
-        		valueToAccept = (String) inputStreamFromClient.readObject();
-        		System.out.println(valueToAccept);
-        		
-        		paxosServerNode.prepare(paxosPort);
-        	}
-        	
-        }
-        catch(Exception e)
-        {
-            System.out.println("Error1");
-        }
-    }
-}
-
-class PaxosSocket implements Runnable {
-    private int clientPort;
+	private int clientPort;
     private int paxosPort;
+    
 	private PaxosServerNodeImpl paxosServerNode;
 	 
     public PaxosSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientport, int paxosport) {
@@ -60,7 +23,8 @@ class PaxosSocket implements Runnable {
 	public void run() {
         try
         {
-        	ServerSocket serverSock = new ServerSocket(8081);
+        	System.out.println("PaxosSocket Thread Started. Paxos Port : " + paxosPort);
+        	ServerSocket serverSock = new ServerSocket(paxosPort);
         	int respondedNodes = 0;
         	while(true)
         	{
@@ -107,24 +71,3 @@ class PaxosSocket implements Runnable {
         }
     }
 }
-
-
-
-public class Server {
-    private static final int clientPort = 8080;
-    private static final int paxosPort = 8081;
-    
-    public static void main(String[] args) {
-    	
-    	PaxosServerNodeImpl paxosServerNodeImpl = new PaxosServerNodeImpl();
-    	
-        ClientSocket clientSocket = new ClientSocket(paxosServerNodeImpl, clientPort, paxosPort);
-        PaxosSocket paxosSocket = new PaxosSocket(paxosServerNodeImpl, clientPort, paxosPort);
-        
-        Thread clientThread = new Thread(clientSocket);
-        Thread paxosThread = new Thread(paxosSocket);
-        
-        clientThread.start();
-        paxosThread.start();
-    }
-} 

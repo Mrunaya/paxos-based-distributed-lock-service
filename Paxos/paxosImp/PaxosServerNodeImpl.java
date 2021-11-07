@@ -12,12 +12,17 @@ import paxosImp.dto.ProposeResponse;
 public class PaxosServerNodeImpl implements PaxosServerNode {
 	
 	
+	int paxosNodeId;
 	int proposalID = 0;
 	int maxId = 0;
 	int promise = 0;
 	
 	boolean proposal_accepted = false;
 	
+	public PaxosServerNodeImpl(int i) {
+		this.paxosNodeId = i;
+	}
+
 	@Override
 	public void prepare(int propsalPort) throws UnknownHostException, IOException {
 
@@ -35,14 +40,17 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	@Override
 	public PrepareResponse respondPrepare(int proposalID) {
 		PrepareResponse response;
-		System.out.println("proposalID is "+proposalID);
+		
+		print("proposalID is "+ proposalID);
+		print("maxId is "+ proposalID);
+		
 		if (maxId < proposalID) {
 			// i am ready
-			System.out.println("response is ready ");
+			print("response is ready ");
 			response = new PrepareResponse(true);
 		} else {
 			// i am not
-			System.out.println("response is not ready ");
+			print("response is not ready ");
 			response = new PrepareResponse(false);
 		}
 		return response;
@@ -74,7 +82,7 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 		message.put("PropsalId", proposalID);
 		message.put("Sender", propsalPort);
 		
-		System.out.println("PropsalId is "+ proposalID);
+		print("PropsalId is "+ proposalID);
 		broadcastMessageToAllNodes(message);
 		
 	}
@@ -96,5 +104,9 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 		socket2.close();
 		socket3.close();
 		
+	}
+	
+	private void print(String msg) {
+		System.out.println("PaxosServer Id : " + this.paxosNodeId + " Message : " + msg);
 	}
 }
