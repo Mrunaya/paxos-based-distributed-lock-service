@@ -17,6 +17,9 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	int maxId = 0;
 	int promise = 0;
 	
+	Integer currentKey = null;
+	Integer propsedValue = null;
+	
 	boolean proposal_accepted = false;
 	
 	public PaxosServerNodeImpl(int i) {
@@ -31,10 +34,14 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	}
 	
 	@Override
-	public void propose(int proposalID, String value) {
-		if (proposal_accepted) {
-			//send propose message to all acceptors
-		}
+	public void propose(int proposalID, int value, int propsalPort) throws UnknownHostException, IOException{
+		HashMap<String, Object> message = new HashMap<>();
+		message.put("PropsalId", proposalID);
+		message.put("ProposeSender", propsalPort);
+		message.put("ValueToAccept", value);
+		
+		print("PropsalId is "+ proposalID);
+		broadcastMessageToAllNodes(message);
 	}
 
 	@Override
@@ -57,7 +64,7 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	}
 
 	@Override
-	public ProposeResponse respondPropose(int proposalID, String value) {
+	public ProposeResponse respondPropose(int proposalID, int value) {
 		ProposeResponse response;
 		if (maxId < proposalID) {
 			//accept this value;
@@ -70,6 +77,27 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 		
 		return response;
 	}
+	
+	public Integer getCurrentKey() {
+		return currentKey;
+	}
+
+	public void setCurrentKey(Integer currentKey) {
+		this.currentKey = currentKey;
+	}
+	
+	public Integer getPropsedValue() {
+		return this.propsedValue;
+	}
+
+	public void setPropsedValue(Integer propsedValue) {
+		this.propsedValue = propsedValue;
+	}
+	
+	public void clearCurrentValue() {
+		this.currentKey = null;
+		this.propsedValue = null;
+	}
 
 	
 	private void accept() {
@@ -78,16 +106,17 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	}
 
 	private void sendPrepareToAcceptors(int propsalPort) throws UnknownHostException, IOException {
-		HashMap<String, Integer> message = new HashMap<>();
+		HashMap<String, Object> message = new HashMap<>();
+
 		message.put("PropsalId", proposalID);
-		message.put("Sender", propsalPort);
+		message.put("PrepareSender", propsalPort);
 		
 		print("PropsalId is "+ proposalID);
 		broadcastMessageToAllNodes(message);
 		
 	}
 	
-	private void broadcastMessageToAllNodes(HashMap<String, Integer> message) throws IOException {
+	private void broadcastMessageToAllNodes(HashMap<String, Object> message) throws IOException {
 		Socket socket1 = new Socket("localhost", 8081);
 		Socket socket2 = new Socket("localhost", 8083);
 		Socket socket3 = new Socket("localhost", 8085);
@@ -100,13 +129,13 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 		outputStream2.writeObject(message);
 		outputStream3.writeObject(message);
 		
-		socket1.close();
-		socket2.close();
-		socket3.close();
+	
 		
 	}
 	
 	private void print(String msg) {
 		System.out.println("PaxosServer Id : " + this.paxosNodeId + " Message : " + msg);
 	}
+	
+	
 }

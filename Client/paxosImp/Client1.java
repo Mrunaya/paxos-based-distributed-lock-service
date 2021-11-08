@@ -13,7 +13,7 @@ public class Client1 {
 			
 			ObjectOutputStream outputStream = new  ObjectOutputStream(socket.getOutputStream());
 	
-			outputStream.writeObject("hello1");
+			outputStream.writeObject(1);
 			socket.close();
 		
     }catch(Exception e) {

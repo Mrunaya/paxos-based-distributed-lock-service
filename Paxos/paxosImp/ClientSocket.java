@@ -6,7 +6,6 @@ import java.net.Socket;
 
 @SuppressWarnings("resource")
 public class ClientSocket implements Runnable {
-    public String valueToAccept;
     private int clientPort;
     private int paxosPort;
     private PaxosServerNodeImpl paxosServerNode;
@@ -28,9 +27,9 @@ public class ClientSocket implements Runnable {
         		Socket sock = serverSock.accept();
         		ObjectInputStream inputStreamFromClient = new ObjectInputStream(sock.getInputStream());
 
-        		valueToAccept = (String) inputStreamFromClient.readObject();
+        		Integer valueToAccept = (Integer) inputStreamFromClient.readObject();
         		System.out.println(valueToAccept);
-        		
+        		paxosServerNode.setPropsedValue(valueToAccept);
         		paxosServerNode.prepare(paxosPort);
         	}
         	

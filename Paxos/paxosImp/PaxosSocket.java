@@ -7,6 +7,7 @@ import java.net.Socket;
 import java.util.HashMap;
 
 import paxosImp.dto.PrepareResponse;
+import paxosImp.dto.ProposeResponse;
 public class PaxosSocket implements Runnable {
     
 	private int clientPort;
@@ -14,9 +15,9 @@ public class PaxosSocket implements Runnable {
     
 	private PaxosServerNodeImpl paxosServerNode;
 	 
-    public PaxosSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientport, int paxosport) {
+    public PaxosSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientPort, int paxosport) {
     	this.paxosServerNode = paxosServerNodeImpl;
-		this.clientPort = clientport;
+		this.clientPort = clientPort;
 		this.paxosPort = paxosport;
 	}
 
@@ -25,7 +26,9 @@ public class PaxosSocket implements Runnable {
         {
         	System.out.println("PaxosSocket Thread Started. Paxos Port : " + paxosPort);
         	ServerSocket serverSock = new ServerSocket(paxosPort);
-        	int respondedNodes = 0;
+        	ClientSocket cl = new ClientSocket(this.paxosServerNode, clientPort, paxosPort);
+        	int respondedNodesForPrepare = 0;
+        	int respondedNodesForPropose = 0;
         	while(true)
         	{
         		Socket socket = serverSock.accept();
@@ -34,12 +37,11 @@ public class PaxosSocket implements Runnable {
         		HashMap<String, Object> message = (HashMap) inputStreamFromClient.readObject();
 
 
-        		if(message.containsKey("PropsalId")) {
-        			System.out.println("The proposalID for 8081 is "+message.get("PropsalId"));
+        		if(message.containsKey("PrepareSender")) {
         			PrepareResponse  response = paxosServerNode.respondPrepare((int) message.get("PropsalId"));
         			
         			//acceptor sends the response to proposer
-        			Socket proposerSocket = new Socket("localhost", (int) message.get("Sender"));
+        			Socket proposerSocket = new Socket("localhost", (int) message.get("PrepareSender"));
         			
         			ObjectOutputStream outputStream1 = new  ObjectOutputStream(proposerSocket.getOutputStream());
         			message = new HashMap<>();
@@ -47,22 +49,53 @@ public class PaxosSocket implements Runnable {
         			message.put("Response", response.isReady());
         			
         			outputStream1.writeObject(message);
+        			
 
-        		} else {
+        		} else if(message.containsKey("Response")) {
         			if((boolean) message.get("Response")) {
-        				message.clear();
-        				respondedNodes++;
+        				message = new HashMap<>();
+        				respondedNodesForPrepare++;
         			}
-        			if(respondedNodes > 2) {
-    
-                		
+
+        			if(respondedNodesForPrepare > 2) {
+        				paxosServerNode.propose(paxosServerNode.proposalID, paxosServerNode.getPropsedValue(), paxosPort);
+
         			}else {
         				//request discarded so server has to create new request with greater proposalID
         			}
-        			
+
 
         		}
-        		System.out.println("respondedNodes 8081 is "+respondedNodes);
+        		else if(message.containsKey("ProposeSender")) {
+        			ProposeResponse  response = paxosServerNode.respondPropose((int)message.get("PropsalId"),(int)message.get("ValueToAccept"));
+        			
+        			//acceptor sends the response to proposer
+        			Socket proposerSocket = new Socket("localhost", (int) message.get("ProposeSender"));
+        			
+        			ObjectOutputStream outputStream1 = new  ObjectOutputStream(proposerSocket.getOutputStream());
+        			message = new HashMap<>();
+        			
+        			message.put("Consensus", response.isValueAccepted());
+        			
+        			outputStream1.writeObject(message);
+        			
+        			proposerSocket.close();
+        			
+
+        		}else if(message.containsKey("Consensus")) {
+        			if((boolean) message.get("Consensus")) {
+        				respondedNodesForPropose++;
+        				if(respondedNodesForPropose > 2) {
+            				
+        					System.out.println("Consensus reached on value "+paxosServerNode.getPropsedValue()+" !!");
+
+            			}else {
+            				//request discarded so server has to create new request with greater proposalID
+            			}
+        				
+        			}
+        		}
+        		
         	}
         }
         catch(Exception e){

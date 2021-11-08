@@ -29,15 +29,19 @@ public interface PaxosServerNode {
 	
 	/**
 	 * Proposer send values if it gets positive response from maximum acceptors
+	 * @throws IOException 
+	 * @throws UnknownHostException 
 	 * */
-	abstract void propose(int proposalID, String value);
+	abstract void propose(int proposalID, int value, int propsalPort) throws UnknownHostException, IOException;
 	
 	/**
 	 * Acceptor accepts the value of the proposer
 	 * Tells Proposer, if I have accepted the value or not
 	 * @return if value is accepted or not, tells proposer and if accepted also to learner
 	 * */
-	abstract ProposeResponse respondPropose(int proposalID, String value);
+	abstract ProposeResponse respondPropose(int proposalID, int value);
+
+	
 
 	
 	
