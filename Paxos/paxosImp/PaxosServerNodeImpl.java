@@ -74,8 +74,7 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	}
 
 
-
-	@Override
+@Override
 	public ProposeResponse respondCommit(int proposalID, String value) {
 		ProposeResponse response;
 		if (maxId < proposalID) {

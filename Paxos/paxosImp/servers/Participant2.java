@@ -18,7 +18,7 @@ public class Participant2 {
         
         System.out.println("Starting threads for server 3");
         
-       // Thread clientThread = new Thread(clientSocket);
+       //Thread clientThread = new Thread(clientSocket);
         Thread paxosThread = new Thread(paxosSocket);
         
         //clientThread.start();

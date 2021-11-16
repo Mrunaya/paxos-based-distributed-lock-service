@@ -39,6 +39,7 @@ public interface PaxosServerNode {
 	 * Tells Proposer, if I have accepted the value or not
 	 * @return if value is accepted or not, tells proposer and if accepted also to learner
 	 * */
+	
 	abstract ProposeResponse respondCommit(int proposalID, String value);
 
 	

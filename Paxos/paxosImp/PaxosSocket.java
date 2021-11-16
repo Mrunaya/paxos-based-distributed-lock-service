@@ -25,6 +25,7 @@ public class PaxosSocket implements Runnable {
 	public void run() {
         try
         {
+        	
         	System.out.println("PaxosSocket Thread Started. Paxos Port : " + paxosPort);
         	ServerSocket serverSock = new ServerSocket(paxosPort);
         	ClientSocket cl = new ClientSocket(this.paxosServerNode, clientPort, paxosPort);

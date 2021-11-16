@@ -28,7 +28,6 @@ public class Client1 {
 						amount = sc.nextLine();
 					} 
 
-
 					switch (userCmd) {
 					case "1": //  Deposit amount
 						outputStream.writeObject("Deposite "+ amount);
