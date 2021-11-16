@@ -27,10 +27,12 @@ public class ClientSocket implements Runnable {
         		Socket sock = serverSock.accept();
         		ObjectInputStream inputStreamFromClient = new ObjectInputStream(sock.getInputStream());
 
-        		Integer valueToAccept = (Integer) inputStreamFromClient.readObject();
+        		String valueToAccept = (String) inputStreamFromClient.readObject();
         		System.out.println(valueToAccept);
         		paxosServerNode.setPropsedValue(valueToAccept);
         		paxosServerNode.prepare(paxosPort);
+        			
+        		
         	}
         	
         }

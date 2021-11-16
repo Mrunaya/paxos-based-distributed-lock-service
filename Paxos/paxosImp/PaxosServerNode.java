@@ -32,14 +32,14 @@ public interface PaxosServerNode {
 	 * @throws IOException 
 	 * @throws UnknownHostException 
 	 * */
-	abstract void propose(int proposalID, int value, int propsalPort) throws UnknownHostException, IOException;
+	abstract void commit(int proposalID, String value, int propsalPort) throws UnknownHostException, IOException;
 	
 	/**
 	 * Acceptor accepts the value of the proposer
 	 * Tells Proposer, if I have accepted the value or not
 	 * @return if value is accepted or not, tells proposer and if accepted also to learner
 	 * */
-	abstract ProposeResponse respondPropose(int proposalID, int value);
+	abstract ProposeResponse respondCommit(int proposalID, String value);
 
 	
 

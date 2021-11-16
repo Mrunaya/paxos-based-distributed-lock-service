@@ -13,12 +13,12 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	
 	
 	int paxosNodeId;
-	int proposalID = 0;
+	int transactionID = 0;
 	int maxId = 0;
 	int promise = 0;
 	
 	Integer currentKey = null;
-	Integer propsedValue = null;
+	String propsedValue = null;
 	
 	boolean proposal_accepted = false;
 	
@@ -29,26 +29,25 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	@Override
 	public void prepare(int propsalPort) throws UnknownHostException, IOException {
 
-		proposalID = proposalID + 1;
+		transactionID = transactionID + 1;
 		sendPrepareToAcceptors(propsalPort);
 	}
-	
-	@Override
-	public void propose(int proposalID, int value, int propsalPort) throws UnknownHostException, IOException{
+	private void sendPrepareToAcceptors(int propsalPort) throws UnknownHostException, IOException {
 		HashMap<String, Object> message = new HashMap<>();
-		message.put("PropsalId", proposalID);
-		message.put("ProposeSender", propsalPort);
-		message.put("ValueToAccept", value);
+		message.put("Prepare", "Phase 1");
+		message.put("TransactionID", transactionID);
+		message.put("CoordinatorPort", propsalPort);
 		
-		print("PropsalId is "+ proposalID);
+		
+		print("PropsalId is "+ transactionID);
 		broadcastMessageToAllNodes(message);
+		
 	}
-
 	@Override
 	public PrepareResponse respondPrepare(int proposalID) {
 		PrepareResponse response;
 		
-		print("proposalID is "+ proposalID);
+		print("TransactionID is "+ proposalID);
 		print("maxId is "+ proposalID);
 		
 		if (maxId < proposalID) {
@@ -62,14 +61,26 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 		}
 		return response;
 	}
+	
+	@Override
+	public void commit(int proposalID, String string, int propsalPort) throws UnknownHostException, IOException{
+		HashMap<String, Object> message = new HashMap<>();
+		message.put("TransactionID", proposalID);
+		message.put("ProposeSender", propsalPort);
+		message.put("ValueToAccept", string);
+		
+		print("PropsalId is "+ proposalID);
+		broadcastMessageToAllNodes(message);
+	}
+
+
 
 	@Override
-	public ProposeResponse respondPropose(int proposalID, int value) {
+	public ProposeResponse respondCommit(int proposalID, String value) {
 		ProposeResponse response;
 		if (maxId < proposalID) {
 			//accept this value;
 			response = new ProposeResponse(true);
-			accept();
 		} else {
 			// didn't accept the value
 			response = new ProposeResponse(false);
@@ -86,11 +97,11 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 		this.currentKey = currentKey;
 	}
 	
-	public Integer getPropsedValue() {
+	public String getPropsedValue() {
 		return this.propsedValue;
 	}
 
-	public void setPropsedValue(Integer propsedValue) {
+	public void setPropsedValue(String propsedValue) {
 		this.propsedValue = propsedValue;
 	}
 	
@@ -100,21 +111,16 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	}
 
 	
-	private void accept() {
+	void accept(int proposalID, String string, int propsalPort) throws IOException {
 		// TODO Send the updated value to learner
-		
-	}
-
-	private void sendPrepareToAcceptors(int propsalPort) throws UnknownHostException, IOException {
 		HashMap<String, Object> message = new HashMap<>();
-
-		message.put("PropsalId", proposalID);
-		message.put("PrepareSender", propsalPort);
+		message.put("ConsensusValue", string);
 		
-		print("PropsalId is "+ proposalID);
+		print("TransactionID is "+ proposalID);
 		broadcastMessageToAllNodes(message);
-		
 	}
+
+	
 	
 	private void broadcastMessageToAllNodes(HashMap<String, Object> message) throws IOException {
 		Socket socket1 = new Socket("localhost", 8081);

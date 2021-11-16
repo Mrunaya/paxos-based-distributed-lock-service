@@ -10,9 +10,7 @@ public class Client2 {
 		try (Socket socket = new Socket("localhost", 8081)) {
 			System.out.println("connected to server");
 			
-			
-			ObjectOutputStream outputStream =
-					new  ObjectOutputStream(socket.getOutputStream());
+			ObjectOutputStream outputStream = new  ObjectOutputStream(socket.getOutputStream());
 	
 			outputStream.writeObject("world");
 		}
