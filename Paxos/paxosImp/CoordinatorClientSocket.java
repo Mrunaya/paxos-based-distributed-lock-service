@@ -5,12 +5,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 @SuppressWarnings("resource")
-public class ClientSocket implements Runnable {
+public class CoordinatorClientSocket implements Runnable {
     private int clientPort;
     private int paxosPort;
     private PaxosServerNodeImpl paxosServerNode;
     
-	public ClientSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientport, int paxosport) {
+	public CoordinatorClientSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientport, int paxosport) {
 		this.paxosServerNode = paxosServerNodeImpl;
 		this.clientPort = clientport;
 		this.paxosPort = paxosport;
@@ -30,9 +30,7 @@ public class ClientSocket implements Runnable {
         		String valueToAccept = (String) inputStreamFromClient.readObject();
         		System.out.println(valueToAccept);
         		paxosServerNode.setPropsedValue(valueToAccept);
-        		paxosServerNode.prepare(paxosPort);
-        			
-        		
+        		paxosServerNode.voteRequest(paxosPort);
         	}
         	
         }

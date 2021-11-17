@@ -27,12 +27,12 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	}
 
 	@Override
-	public void prepare(int propsalPort) throws UnknownHostException, IOException {
+	public void voteRequest(int propsalPort) throws UnknownHostException, IOException {
 
 		transactionID = transactionID + 1;
-		sendPrepareToAcceptors(propsalPort);
+		sendViteRequestToAcceptors(propsalPort);
 	}
-	private void sendPrepareToAcceptors(int propsalPort) throws UnknownHostException, IOException {
+	private void sendViteRequestToAcceptors(int propsalPort) throws UnknownHostException, IOException {
 		HashMap<String, Object> message = new HashMap<>();
 		message.put("Prepare", "Phase 1");
 		message.put("TransactionID", transactionID);
@@ -44,7 +44,7 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 		
 	}
 	@Override
-	public PrepareResponse respondPrepare(int proposalID) {
+	public PrepareResponse respondVoteRequest(int proposalID) {
 		PrepareResponse response;
 		
 		print("TransactionID is "+ proposalID);
@@ -63,11 +63,11 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	}
 	
 	@Override
-	public void commit(int proposalID, String string, int propsalPort) throws UnknownHostException, IOException{
+	public void voteCommit(int proposalID, String string, int propsalPort) throws UnknownHostException, IOException{
 		HashMap<String, Object> message = new HashMap<>();
+		message.put("voteCommit", "Phase 2");
 		message.put("TransactionID", proposalID);
-		message.put("ProposeSender", propsalPort);
-		message.put("ValueToAccept", string);
+		message.put("CoordinatorPort", propsalPort);
 		
 		print("PropsalId is "+ proposalID);
 		broadcastMessageToAllNodes(message);
@@ -75,7 +75,7 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 
 
 @Override
-	public ProposeResponse respondCommit(int proposalID, String value) {
+	public ProposeResponse respondCommit(int proposalID) {
 		ProposeResponse response;
 		if (maxId < proposalID) {
 			//accept this value;
@@ -113,24 +113,22 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	void accept(int proposalID, String string, int propsalPort) throws IOException {
 		// TODO Send the updated value to learner
 		HashMap<String, Object> message = new HashMap<>();
-		message.put("ConsensusValue", string);
-		
-		print("TransactionID is "+ proposalID);
+		message.put("CoordinatorMessage", string);
 		broadcastMessageToAllNodes(message);
 	}
 
 	
 	
 	private void broadcastMessageToAllNodes(HashMap<String, Object> message) throws IOException {
-		Socket socket1 = new Socket("localhost", 8081);
+		//Socket socket1 = new Socket("localhost", 8081);
 		Socket socket2 = new Socket("localhost", 8083);
 		Socket socket3 = new Socket("localhost", 8085);
 		
-		ObjectOutputStream outputStream1 = new ObjectOutputStream(socket1.getOutputStream());
+		//ObjectOutputStream outputStream1 = new ObjectOutputStream(socket1.getOutputStream());
 		ObjectOutputStream outputStream2 = new ObjectOutputStream(socket2.getOutputStream());
 		ObjectOutputStream outputStream3 = new ObjectOutputStream(socket3.getOutputStream());
 
-		outputStream1.writeObject(message);
+		//outputStream1.writeObject(message);
 		outputStream2.writeObject(message);
 		outputStream3.writeObject(message);
 		

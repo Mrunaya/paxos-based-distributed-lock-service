@@ -15,7 +15,7 @@ public interface PaxosServerNode {
 	 * @throws IOException 
 	 * @throws UnknownHostException 
 	 * */
-	abstract void prepare(int propsalPort) throws UnknownHostException, IOException;
+	abstract void voteRequest(int propsalPort) throws UnknownHostException, IOException;
 	
 	/**
 	 * Acceptor accepts the PREPARE call of prosper 
@@ -23,7 +23,7 @@ public interface PaxosServerNode {
 	 * 
 	 * @return PrepareResponse ready=true if ACCEPTORS recentproposalID is smaller than proposalID
 	 * */
-	abstract PrepareResponse respondPrepare(int proposalID);
+	abstract PrepareResponse respondVoteRequest(int proposalID);
 	
 	/* Phase 2 */
 	
@@ -32,7 +32,7 @@ public interface PaxosServerNode {
 	 * @throws IOException 
 	 * @throws UnknownHostException 
 	 * */
-	abstract void commit(int proposalID, String value, int propsalPort) throws UnknownHostException, IOException;
+	abstract void voteCommit(int proposalID, String value, int propsalPort) throws UnknownHostException, IOException;
 	
 	/**
 	 * Acceptor accepts the value of the proposer
@@ -40,7 +40,7 @@ public interface PaxosServerNode {
 	 * @return if value is accepted or not, tells proposer and if accepted also to learner
 	 * */
 	
-	abstract ProposeResponse respondCommit(int proposalID, String value);
+	abstract ProposeResponse respondCommit(int proposalID);
 
 	
 

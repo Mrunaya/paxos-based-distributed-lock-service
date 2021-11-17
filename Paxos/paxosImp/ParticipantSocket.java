@@ -8,14 +8,14 @@ import java.util.HashMap;
 
 import paxosImp.dto.PrepareResponse;
 import paxosImp.dto.ProposeResponse;
-public class PaxosSocket implements Runnable {
+public class ParticipantSocket implements Runnable {
     
 	private int clientPort;
     private int paxosPort;
     private int balance;
 	private PaxosServerNodeImpl paxosServerNode;
 	 
-    public PaxosSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientPort, int paxosport, int balance) {
+    public ParticipantSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientPort, int paxosport, int balance) {
     	this.paxosServerNode = paxosServerNodeImpl;
 		this.clientPort = clientPort;
 		this.paxosPort = paxosport;
@@ -28,7 +28,6 @@ public class PaxosSocket implements Runnable {
         	
         	System.out.println("PaxosSocket Thread Started. Paxos Port : " + paxosPort);
         	ServerSocket serverSock = new ServerSocket(paxosPort);
-        	ClientSocket cl = new ClientSocket(this.paxosServerNode, clientPort, paxosPort);
         	int respondedNodesForPrepare = 0;
         	int respondedNodesForPropose = 0;
         	while(true)
@@ -40,7 +39,7 @@ public class PaxosSocket implements Runnable {
 
 
         		if(message.containsKey("Prepare")) {
-        			PrepareResponse  response = paxosServerNode.respondPrepare((int) message.get("PropsalId"));
+        			PrepareResponse  response = paxosServerNode.respondVoteRequest((int) message.get("TransactionID"));
         			
         			//Participants sends the response to coordinator
         			Socket proposerSocket = new Socket("localhost", (int) message.get("CoordinatorPort"));
@@ -48,58 +47,33 @@ public class PaxosSocket implements Runnable {
         			ObjectOutputStream outputStream1 = new  ObjectOutputStream(proposerSocket.getOutputStream());
         			message = new HashMap<>();
         			
-        			message.put("Response", response.isReady());
+        			message.put("ResponsePrepare", response.isReady());
         			
         			outputStream1.writeObject(message);
         			
 
-        		} else if(message.containsKey("Response")) {
-        			if((boolean) message.get("Response")) {
-        				message = new HashMap<>();
-        				respondedNodesForPrepare++;
-        			}
-
-        			if(respondedNodesForPrepare == 2) {
-        				System.out.println("Responces received from all participants. Phase 1 compleleted. ");
-        				paxosServerNode.commit(paxosServerNode.transactionID, paxosServerNode.getPropsedValue(), paxosPort);
-
-        			}else {
-        				System.out.println("Responces received from all participants. Aborting the transaction ");
-        				//request discarded so server has to create new request with greater proposalID
-        			}
-
-
-        		}
-        		else if(message.containsKey("ProposeSender")) {
-        			ProposeResponse  response = paxosServerNode.respondCommit((int)message.get("PropsalId"),(String)message.get("ValueToAccept"));
+        		} 
+        		else if(message.containsKey("voteCommit")) {
+        			ProposeResponse  response = paxosServerNode.respondCommit((int)message.get("TransactionID"));
         			
         			//acceptor sends the response to proposer
-        			Socket proposerSocket = new Socket("localhost", (int) message.get("ProposeSender"));
+        			Socket CoordinatorPort = new Socket("localhost", (int) message.get("CoordinatorPort"));
         			
-        			ObjectOutputStream outputStream1 = new  ObjectOutputStream(proposerSocket.getOutputStream());
+        			ObjectOutputStream outputStream1 = new  ObjectOutputStream(CoordinatorPort.getOutputStream());
         			message = new HashMap<>();
         			
         			message.put("Action", response.isValueAccepted());
         			
         			outputStream1.writeObject(message);
         			
-        			proposerSocket.close();
+        			CoordinatorPort.close();
         			
 
-        		}else if(message.containsKey("Action")) {
-        			if((boolean) message.get("Action")) {
-        				respondedNodesForPropose++;
-        				if(respondedNodesForPropose == 2) {
-            				
-        					System.out.println("Transaction is commited");
-        					paxosServerNode.accept(paxosServerNode.transactionID, paxosServerNode.getPropsedValue(), paxosPort);
-
-            			}else {
-            				System.out.println("Transaction is commited");
-            				//request discarded so server has to create new request with greater proposalID
-            			}
+        		}
+        		else if(message.containsKey("CoordinatorMessage")) {
+        			System.out.println("Transaction Commited !!");
         				
-        			}
+        			
         		}
         		/*else if(message.containsKey("Consensus")) { 
         			if((boolean) message.get("Consensus")) {

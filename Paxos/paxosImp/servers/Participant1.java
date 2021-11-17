@@ -1,8 +1,8 @@
 package paxosImp.servers;
 
-import paxosImp.ClientSocket;
+import paxosImp.CoordinatorClientSocket;
 import paxosImp.PaxosServerNodeImpl;
-import paxosImp.PaxosSocket;
+import paxosImp.ParticipantSocket;
 
 public class Participant1 {
     private static final int clientPort = 8082;
@@ -10,13 +10,13 @@ public class Participant1 {
     private static final int balance = 1000;
     
     public static void main(String[] args) {
-    	System.out.println("Starting server2");
+    	System.out.println("Starting Participant 1");
     	PaxosServerNodeImpl paxosServerNodeImpl = new PaxosServerNodeImpl(2);
     	
         //ClientSocket clientSocket = new ClientSocket(paxosServerNodeImpl, clientPort, paxosPort);
-        PaxosSocket paxosSocket = new PaxosSocket(paxosServerNodeImpl, clientPort, paxosPort, balance);
+        ParticipantSocket paxosSocket = new ParticipantSocket(paxosServerNodeImpl, clientPort, paxosPort, balance);
         
-        System.out.println("Starting threads for server 2");
+        System.out.println("Starting threads for Participan 1");
         
         //Thread clientThread = new Thread(clientSocket);
         Thread paxosThread = new Thread(paxosSocket);
