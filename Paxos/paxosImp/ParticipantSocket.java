@@ -75,7 +75,7 @@ public class ParticipantSocket implements Runnable {
         				
         			
         		}
-        		/*else if(message.containsKey("Consensus")) { 
+        		 /*else if(message.containsKey("Consensus")) { 
         			if((boolean) message.get("Consensus")) {
         				respondedNodesForPropose++;
         				if(respondedNodesForPropose > 2) {

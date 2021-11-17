@@ -30,7 +30,7 @@ public class CoordinatorClientSocket implements Runnable {
         		String valueToAccept = (String) inputStreamFromClient.readObject();
         		System.out.println(valueToAccept);
         		paxosServerNode.setPropsedValue(valueToAccept);
-        		paxosServerNode.voteRequest(paxosPort);
+        		paxosServerNode.voteRequest(paxosPort); 
         	}
         	
         }

@@ -22,7 +22,7 @@ public interface PaxosServerNode {
 	 * Tells Proposer, that I am ready or not ready
 	 * 
 	 * @return PrepareResponse ready=true if ACCEPTORS recentproposalID is smaller than proposalID
-	 * */
+	 * */ 
 	abstract PrepareResponse respondVoteRequest(int proposalID);
 	
 	/* Phase 2 */

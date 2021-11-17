@@ -29,7 +29,7 @@ public class Coordinator{
         
         Thread coordinatorClientThread = new Thread(coordinatorClientSocket);
         Thread coordinatorServerThread = new Thread(coordinatorServerSocket);
-        
+         
         coordinatorServerThread.start();
         coordinatorClientThread.start();
         

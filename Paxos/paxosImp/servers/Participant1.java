@@ -21,7 +21,7 @@ public class Participant1 {
         //Thread clientThread = new Thread(clientSocket);
         Thread paxosThread = new Thread(paxosSocket);
         
-         //clientThread.start();
+        //clientThread.start();
         paxosThread.start();
     }
 } 

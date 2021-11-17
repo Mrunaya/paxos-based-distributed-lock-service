@@ -37,7 +37,7 @@ public class CoordinatorServerSocket implements Runnable {
         		ObjectInputStream inputStreamFromClient = new ObjectInputStream(socket.getInputStream());
         		HashMap<String, Object> messageFromParticipant = (HashMap) inputStreamFromClient.readObject();
 
-            		
+            	
         			if(messageFromParticipant.containsKey("ResponsePrepare")) {
         				if((boolean) messageFromParticipant.get("ResponsePrepare")) {
         					messageFromParticipant = new HashMap<>();

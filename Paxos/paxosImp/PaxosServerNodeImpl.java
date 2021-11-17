@@ -31,7 +31,7 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 
 		transactionID = transactionID + 1;
 		sendViteRequestToAcceptors(propsalPort);
-	}
+	} 
 	private void sendViteRequestToAcceptors(int propsalPort) throws UnknownHostException, IOException {
 		HashMap<String, Object> message = new HashMap<>();
 		message.put("Prepare", "Phase 1");
