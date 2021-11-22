@@ -1,9 +1,15 @@
 package paxosImp;
 
+import java.io.BufferedWriter;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 
 import paxosImp.dto.PrepareResponse;
@@ -14,22 +20,24 @@ public class ParticipantSocket implements Runnable {
     private int paxosPort;
     private int balance;
 	private PaxosServerNodeImpl paxosServerNode;
-	 
-    public ParticipantSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientPort, int paxosport, int balance) {
+	FileOutputStream fos;
+	
+    public ParticipantSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientPort, int paxosport, int balance) throws IOException {
     	this.paxosServerNode = paxosServerNodeImpl;
 		this.clientPort = clientPort;
 		this.paxosPort = paxosport;
 		this.balance = balance;
+		fos = new FileOutputStream("Participant_log_" + clientPort +".txt", true);
+	    writeToLog("INIT");
 	}
 
+	@SuppressWarnings("resource")
 	public void run() {
         try
         {
         	
         	System.out.println("PaxosSocket Thread Started. Paxos Port : " + paxosPort);
         	ServerSocket serverSock = new ServerSocket(paxosPort);
-        	int respondedNodesForPrepare = 0;
-        	int respondedNodesForPropose = 0;
         	while(true)
         	{
         		Socket socket = serverSock.accept();
@@ -38,8 +46,8 @@ public class ParticipantSocket implements Runnable {
         		HashMap<String, Object> message = (HashMap) inputStreamFromClient.readObject();
 
 
-        		if(message.containsKey("Prepare")) {
-        			PrepareResponse  response = paxosServerNode.respondVoteRequest((int) message.get("TransactionID"));
+        		if(message.containsKey("VoteRequest")) {
+        			PrepareResponse  response = paxosServerNode.respondVoteRequest();
         			
         			//Participants sends the response to coordinator
         			Socket proposerSocket = new Socket("localhost", (int) message.get("CoordinatorPort"));
@@ -47,27 +55,54 @@ public class ParticipantSocket implements Runnable {
         			ObjectOutputStream outputStream1 = new  ObjectOutputStream(proposerSocket.getOutputStream());
         			message = new HashMap<>();
         			
-        			message.put("ResponsePrepare", response.isReady());
+        			//wait for vite request ; if timeout send vote abort
+        			message.put("VoteCommit", response.isReady());
         			
         			outputStream1.writeObject(message);
+        			if(response.isReady()) {
+        			writeToLog("VOTE_COMMIT");
+        			}else if(!response.isReady()) {
+        				writeToLog("VOTE_ABORT");
+        			}
         			
-
         		} 
-        		else if(message.containsKey("voteCommit")) {
-        			ProposeResponse  response = paxosServerNode.respondCommit((int)message.get("TransactionID"));
+        		//if no gloabl commit from corrdinator within time 
+        		else if(false) {
+        			Socket participant2Socket = new Socket("localhost", 8085);
         			
-        			//acceptor sends the response to proposer
-        			Socket CoordinatorPort = new Socket("localhost", (int) message.get("CoordinatorPort"));
-        			
-        			ObjectOutputStream outputStream1 = new  ObjectOutputStream(CoordinatorPort.getOutputStream());
+        			ObjectOutputStream outputStream1 = new  ObjectOutputStream(participant2Socket.getOutputStream());
         			message = new HashMap<>();
-        			
-        			message.put("Action", response.isValueAccepted());
+        			//wait for vite request ; if timeout send vote abort
+        			message.put("Coordinator Inactive","result");
         			
         			outputStream1.writeObject(message);
+        		}
+        		else if(message.containsKey("Coordinator Inactive")) {
+        			Socket participant1Socket = new Socket("localhost", 8083);
         			
-        			CoordinatorPort.close();
+        			ObjectOutputStream outputStream1 = new  ObjectOutputStream(participant1Socket.getOutputStream());
+        			message = new HashMap<>();
+        			//check log and send the if got responce from coordinator
+        			message.put("ParticipantResult","LogResult");
         			
+        			outputStream1.writeObject(message);
+        		}
+        		else if(message.containsKey("ParticipantResult")) {
+        			if(message.get("ParticipantResult").equals("Commit")) {
+        				writeToLog("VOTE_COMMIT");
+        			}else {
+        				writeToLog("VOTE_ABORT");
+        			}
+        		}
+        		else if(message.containsKey("GlobalCommitOrAbort")) {
+        			if(message.get("GlobalCommitOrAbort").equals("Commit")) {
+        				writeToLog("GLOBAL_COMMIT");
+        			}else {
+        				writeToLog("GLOBAL_ABORT");
+        			}
+        			
+        			
+        			//write to file
 
         		}
         		else if(message.containsKey("CoordinatorMessage")) {
@@ -75,39 +110,26 @@ public class ParticipantSocket implements Runnable {
         				
         			
         		}
-        		 /*else if(message.containsKey("Consensus")) { 
-        			if((boolean) message.get("Consensus")) {
-        				respondedNodesForPropose++;
-        				if(respondedNodesForPropose > 2) {
-            				
-        					System.out.println("Consensus reached on value "+paxosServerNode.getPropsedValue()+" !!");
-        					paxosServerNode.accept(paxosServerNode.transactionID, paxosServerNode.getPropsedValue(), paxosPort);
-
-            			}else {
-            				//request discarded so server has to create new request with greater proposalID
-            			}
-        				
-        			}
-        		}else if(message.containsKey("ConsensusValue")) { 
-        			String ConsensusValue = (String) message.get("ConsensusValue");
-        			if(ConsensusValue.contains("Deposit")) {
-        				int value =  Integer.parseInt(ConsensusValue.split(" ")[1]);
-        				balance = balance + value;
-        				System.out.println("balance is "+ balance);
-        			}else if(ConsensusValue.contains("Credit")) {
-        				int value =  Integer.parseInt(ConsensusValue.split(" ")[1]);
-        				balance = balance - value;
-        				System.out.println("balance is "+ balance);
-        			}else if(ConsensusValue.contains("Show Balance")) {
-        				
-        			}
-        		}*/
         		
         	}
         }
         catch(Exception e){
         	e.printStackTrace();
             System.out.println("Error2");
+        } finally {
+        	try {
+        		fos.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
     }
+	
+	private void writeToLog(String log) throws IOException {
+		String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
+		String logStmt = "\n" + timeStamp +" - " + log;
+		
+	    fos.write(logStmt.getBytes());
+	}
 }

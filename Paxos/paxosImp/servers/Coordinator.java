@@ -1,15 +1,11 @@
 package paxosImp.servers;
 
-import paxosImp.PaxosServerNodeImpl;
-import paxosImp.ParticipantSocket;
-
-import java.io.ObjectInputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.io.IOException;
 import java.util.HashMap;
 
 import paxosImp.CoordinatorClientSocket;
 import paxosImp.CoordinatorServerSocket;
+import paxosImp.PaxosServerNodeImpl;
 
 public class Coordinator{
     private static final int clientPort = 8080;
@@ -18,7 +14,7 @@ public class Coordinator{
     
     private static final HashMap<Integer, String> mapOfString = new HashMap<Integer, String>();
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
     	System.out.println("Starting Coordinator");
     	PaxosServerNodeImpl paxosServerNodeImpl = new PaxosServerNodeImpl(1);
     	

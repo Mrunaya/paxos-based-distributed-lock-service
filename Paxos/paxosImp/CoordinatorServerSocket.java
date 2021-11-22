@@ -1,25 +1,28 @@
 package paxosImp;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
-
-import paxosImp.dto.PrepareResponse;
-import paxosImp.dto.ProposeResponse;
 public class CoordinatorServerSocket implements Runnable {
     
 	private int clientPort;
     private int paxosPort;
     private int balance;
 	private PaxosServerNodeImpl paxosServerNode;
+	FileOutputStream fos;
 	 
-    public CoordinatorServerSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientPort, int paxosport) {
+    public CoordinatorServerSocket(PaxosServerNodeImpl paxosServerNodeImpl, int clientPort, int paxosport) throws IOException {
     	this.paxosServerNode = paxosServerNodeImpl;
 		this.clientPort = clientPort;
 		this.paxosPort = paxosport;
 		this.balance = balance;
+		fos = new FileOutputStream("Coordinator_log_" + clientPort +".txt", true);
+		writeToLog("START_2PC");
 	}
 
 	public void run() {
@@ -38,39 +41,28 @@ public class CoordinatorServerSocket implements Runnable {
         		HashMap<String, Object> messageFromParticipant = (HashMap) inputStreamFromClient.readObject();
 
             	
-        			if(messageFromParticipant.containsKey("ResponsePrepare")) {
-        				if((boolean) messageFromParticipant.get("ResponsePrepare")) {
+        			if(messageFromParticipant.containsKey("VoteCommit")) {
+        				if((boolean) messageFromParticipant.get("VoteCommit")) {
         					messageFromParticipant = new HashMap<>();
         					respondedNodesForPrepare++;
         				}
-        				else if(!(boolean) messageFromParticipant.get("Response")) {
+        				//wait for incoming responce from all participants
+        				// if timeout write golabl abort and multicast
+        				else if(!(boolean) messageFromParticipant.get("VoteCommit")) {
         					System.out.println("Responces received from all participants. Aborting the transaction ");
-        					//request discarded so server has to create new request with greater proposalID
+        					writeToLog("GLOBAL_COMMIT");
+         					paxosServerNode.globalCommitOrAbort(paxosServerNode.transactionID, "Abort", paxosPort);
+
         				}
 
         				if(respondedNodesForPrepare == 2) {
         					System.out.println("Responces received from all participants. Phase 1 compleleted. ");
-        					paxosServerNode.voteCommit(paxosServerNode.transactionID, paxosServerNode.getPropsedValue(), paxosPort);
-
+        					writeToLog("GLOBAL_COMMIT");
+        					paxosServerNode.globalCommitOrAbort(paxosServerNode.transactionID, "Commit", paxosPort);
         				}
         			}
         		    
-        		    else if(messageFromParticipant.containsKey("Action")) {
-        				if((boolean) messageFromParticipant.get("Action")) {
-        					respondedNodesForPropose++;
-        				}
-        				else if(!(boolean) messageFromParticipant.get("Action")) {
-        					System.out.println("Transaction is Aborted");
-        					paxosServerNode.accept(paxosServerNode.transactionID, "Glabal Abort", paxosPort);
-        					//request discarded so server has to create new request with greater proposalID
-        				}
-        				if(respondedNodesForPropose == 2) {
-        					System.out.println("Transaction is commited");
-        					paxosServerNode.accept(paxosServerNode.transactionID, "Glabal Commit", paxosPort);
-        				}
-        					
-        				
-        			}
+        		 
             	
         		
         	}
@@ -78,6 +70,20 @@ public class CoordinatorServerSocket implements Runnable {
         catch(Exception e){
         	e.printStackTrace();
             System.out.println("Error2");
+        } finally {
+        	try {
+				fos.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
     }
+	
+	private void writeToLog(String log) throws IOException {
+		String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
+		String logStmt = "\n" + timeStamp +" - " + log;
+		
+	    fos.write(logStmt.getBytes());
+	}
 }

@@ -1,5 +1,7 @@
 package paxosImp.servers;
 
+import java.io.IOException;
+
 import paxosImp.CoordinatorClientSocket;
 import paxosImp.PaxosServerNodeImpl;
 import paxosImp.ParticipantSocket;
@@ -9,7 +11,7 @@ public class Participant1 {
     private static final int paxosPort = 8083;
     private static final int balance = 1000;
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
     	System.out.println("Starting Participant 1");
     	PaxosServerNodeImpl paxosServerNodeImpl = new PaxosServerNodeImpl(2);
     	

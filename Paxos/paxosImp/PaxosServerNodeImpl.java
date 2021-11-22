@@ -30,27 +30,22 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	public void voteRequest(int propsalPort) throws UnknownHostException, IOException {
 
 		transactionID = transactionID + 1;
-		sendViteRequestToAcceptors(propsalPort);
+		sendVoteRequestToAcceptors(propsalPort);
 	} 
-	private void sendViteRequestToAcceptors(int propsalPort) throws UnknownHostException, IOException {
+	private void sendVoteRequestToAcceptors(int propsalPort) throws UnknownHostException, IOException {
 		HashMap<String, Object> message = new HashMap<>();
-		message.put("Prepare", "Phase 1");
+		message.put("VoteRequest", "Phase 1");
 		message.put("TransactionID", transactionID);
 		message.put("CoordinatorPort", propsalPort);
 		
-		
-		print("PropsalId is "+ transactionID);
 		broadcastMessageToAllNodes(message);
 		
 	}
 	@Override
-	public PrepareResponse respondVoteRequest(int proposalID) {
+	public PrepareResponse respondVoteRequest() {
 		PrepareResponse response;
 		
-		print("TransactionID is "+ proposalID);
-		print("maxId is "+ proposalID);
-		
-		if (maxId < proposalID) {
+		if (true) {
 			// i am ready
 			print("response is ready ");
 			response = new PrepareResponse(true);
@@ -63,9 +58,9 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 	}
 	
 	@Override
-	public void voteCommit(int proposalID, String string, int propsalPort) throws UnknownHostException, IOException{
+	public void globalCommitOrAbort(int proposalID, String string, int propsalPort) throws UnknownHostException, IOException{
 		HashMap<String, Object> message = new HashMap<>();
-		message.put("voteCommit", "Phase 2");
+		message.put("GlobalCommitOrAbort", string);
 		message.put("TransactionID", proposalID);
 		message.put("CoordinatorPort", propsalPort);
 		
@@ -75,9 +70,9 @@ public class PaxosServerNodeImpl implements PaxosServerNode {
 
 
 @Override
-	public ProposeResponse respondCommit(int proposalID) {
+	public ProposeResponse respondCommit() {
 		ProposeResponse response;
-		if (maxId < proposalID) {
+		if (true) {
 			//accept this value;
 			response = new ProposeResponse(true);
 		} else {

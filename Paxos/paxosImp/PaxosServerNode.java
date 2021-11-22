@@ -23,7 +23,7 @@ public interface PaxosServerNode {
 	 * 
 	 * @return PrepareResponse ready=true if ACCEPTORS recentproposalID is smaller than proposalID
 	 * */ 
-	abstract PrepareResponse respondVoteRequest(int proposalID);
+	abstract PrepareResponse respondVoteRequest( );
 	
 	/* Phase 2 */
 	
@@ -32,7 +32,7 @@ public interface PaxosServerNode {
 	 * @throws IOException 
 	 * @throws UnknownHostException 
 	 * */
-	abstract void voteCommit(int proposalID, String value, int propsalPort) throws UnknownHostException, IOException;
+	abstract void globalCommitOrAbort(int proposalID, String value, int propsalPort) throws UnknownHostException, IOException;
 	
 	/**
 	 * Acceptor accepts the value of the proposer
@@ -40,7 +40,7 @@ public interface PaxosServerNode {
 	 * @return if value is accepted or not, tells proposer and if accepted also to learner
 	 * */
 	
-	abstract ProposeResponse respondCommit(int proposalID);
+	abstract ProposeResponse respondCommit();
 
 	
 
